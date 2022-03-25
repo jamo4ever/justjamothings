@@ -1,0 +1,113 @@
+#!/bin/bash
+#Works with az cli version 2.10.1 and above
+#Ensure you install azure-devops extension
+if [[ "$1" != "" ]]; then
+    branchType="$1"
+else
+   echo "You can pass me arguments to save time, e.g brancher task 1415 master"
+    branchType=
+fi
+
+if [[ "$2" != "" ]]; then
+    azdoNumber="$2"
+else
+    azdoNumber=
+fi
+
+if [[ "$3" != "" ]]; then
+    parentBranch="$3"
+else
+    parentBranch=
+fi
+
+
+if az extension list | grep -q azure-devops > /dev/null 2>&1; then
+:
+else
+echo "Ensure you install azure-devops extension, 'az extension add --name azure-devops'"
+exit 1
+fi
+
+
+#Ensure you have a valid az session, az login
+if az account show > /dev/null 2>&1; then
+:
+else
+echo "Ensure you are logged in to az cli, run az login and try again"
+exit 1
+fi
+
+#Check you are in a git repo
+if git rev-parse --git-dir > /dev/null 2>&1; then
+  : # This is a valid git repository (but the current working
+    # directory may not be the top level.
+    # Check the output of the git rev-parse command if you care)
+else
+echo " You must be in a valid git repository to run me"
+exit 1
+fi
+
+# Get Branch type
+
+if [[ -z "$branchType" ]]; then
+echo "I will create and push to origin a branch based on your input"
+echo "###############################################"
+select branchType in feature bug task chore
+do
+break
+done
+echo "You have selected $branchType"
+fi
+
+if [[ -z "$branchType" ]]; then
+   printf '%s\n' "You must select from the listed options, exiting "
+   exit 1
+fi
+
+if [[ -z "$azdoNumber" ]]; then
+#Get AZDO Number
+echo "Azure Devops issue number"
+read azdoNumber
+if [[ -z "$azdoNumber" ]]; then
+   printf '%s\n' "You must specify an Azure Devops Issue Number"
+   exit 1
+fi
+fi
+
+#Lets get the AZDO Issue Title and use it in our branch name
+azdoDesc=$(az boards work-item show --fields System.Title --id $azdoNumber --organization https://dev.azure.com/$myorg --expand none --output json | python -c 'import json,sys;obj=json.load(sys.stdin);print obj["fields"]["System.Title"]'| tr -cd '[:alnum:][:blank:]\n')
+azdoDesc=$(sed 's/ /-/g' <<< "$azdoDesc")
+if [[ -z "$azdoDesc" ]]; then
+   printf '%s\n' "Issue Title should not be null (Or I can't find that issue, exiting)"
+   exit 1
+fi
+echo $azdoDesc
+
+if [[ -z "$parentBranch" ]]; then
+echo "Where should we branch from? (Defaults to master)"
+read parentBranch
+if [[ -z "$parentBranch" ]]; then
+   printf '%s\n' "Defaulting to master"
+   parentBrach=master
+fi
+fi
+
+echo Creating $branchName
+
+if [[ "$1" != "$branchType" ]]; then
+read -p "Creating $branchName from $parentBranch Are you sure? (Answer with 'y/n') " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    exit 1
+fi
+fi
+
+#Now lets pull parentBrach
+git fetch
+git checkout $parentBranch
+git pull
+#Create branch and push to origin
+git checkout -b $branchName
+git push origin $branchName
+git branch --set-upstream-to=origin/$branchName $branchName
