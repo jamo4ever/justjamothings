@@ -1,9 +1,9 @@
 #!/bin/bash
-#podsh by jamo
+#podlog by jamo
 if [[ "$1" != "" ]]; then
     deployment="$1"
 else
-   echo "Specify a deployment name e.g podsh kube-proxy "
+   echo "Specify a deployment name e.g podlog kube-proxy "
    exit 1
 fi
 
