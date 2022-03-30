@@ -35,7 +35,7 @@ podId=$(printf "$allPods" | grep $deployment | awk '{print $2}')
 fi
 fi
 #Do the attach
-echo "Attaching with sh shell to"
+echo "Gettings logs for:"
 echo "namespace: $nameSpace"
 echo "podid: $podId"
 kubectl -n $nameSpace logs $podId | less
