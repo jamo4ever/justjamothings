@@ -1,0 +1,41 @@
+#!/bin/bash
+#podsh by jamo
+if [[ "$1" != "" ]]; then
+    deployment="$1"
+else
+   echo "Specify a deployment name e.g podsh kube-proxy "
+   exit 1
+fi
+
+allPods=$(kubectl get pods --all-namespaces)
+#Check if same deployment exists in multiple namespaces
+if [[ `printf "$allPods" | grep $1 | awk '{print $1}' | uniq | wc -l` -ge "2" ]]; then
+echo "Pods Running for Deployment in Mutiple Namespaces Please select"
+read -r -p "`printf "$allPods" | grep $1 | awk '{print $1}'` `echo $'\n> '` " nameSpace
+echo "$nameSpace selected"
+else 
+namespace=$(printf "$allPods" | grep $deployment | awk '{print $1}' | uniq)
+fi
+
+#Check if multiple pods
+if [ -v nameSpace ];
+then
+if [[ `printf "$allPods" | grep $1 | grep $nameSpace| awk '{print $2}' | uniq | wc -l` -ge "2" ]]; then
+echo "Multiple Pods Running for Deployment Please select"
+read -r -p "`printf "$allPods" | grep $1 | grep $nameSpace | awk '{print $2}'` `echo $'\n> '` " podId
+else 
+podId=$(printf "$allPods" | grep $deployment | grep $nameSpace |  awk '{print $2}')
+fi
+else
+if [[ `printf "$allPods" | grep $1 | awk '{print $2}' | uniq | wc -l` -ge "2" ]]; then
+echo "Multiple Pods Running for Deployment Please select"
+read -r -p "`printf "$allPods" | grep $1 | awk '{print $2}'` `echo $'\n> '` " podId
+else 
+podId=$(printf "$allPods" | grep $deployment | awk '{print $2}')
+fi
+fi
+#Do the attach
+echo "Attaching with sh shell to"
+echo "namespace: $nameSpace"
+echo "podid: $podId"
+kubectl -n $nameSpace logs $podId | less
