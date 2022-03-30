@@ -27,6 +27,6 @@ fi
 
 #Do the attach
 echo "Attaching with sh shell to"
-echo "namespace: $namespace"
+echo "namespace: $nameSpace"
 echo "podid: $podId"
-kubectl exec -n $namespace --stdin --tty $podId -- /bin/sh
+kubectl exec -n $nameSpace --stdin --tty $podId -- /bin/sh
