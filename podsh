@@ -1,5 +1,4 @@
 #!/bin/bash
-#For connecting into kubernetes pods with minimal effort
 #podsh by jamo
 if [[ "$1" != "" ]]; then
     deployment="$1"
@@ -12,7 +11,7 @@ allPods=$(kubectl get pods --all-namespaces)
 #Check if same deployment exists in multiple namespaces
 if [[ `printf "$allPods" | grep $1 | awk '{print $1}' | uniq | wc -l` -ge "2" ]]; then
 echo "Pods Running for Deployment in Mutiple Namespaces Please select"
-read -r -p "`printf "$allPods" | grep $1 | awk '{print $2}'` `echo $'\n> '` " nameSpace
+read -r -p "`printf "$allPods" | grep $1 | awk '{print $1}'` `echo $'\n> '` " nameSpace
 echo "$nameSpace selected"
 else 
 namespace=$(printf "$allPods" | grep $deployment | awk '{print $1}' | uniq)
