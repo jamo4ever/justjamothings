@@ -18,13 +18,22 @@ namespace=$(printf "$allPods" | grep $deployment | awk '{print $1}' | uniq)
 fi
 
 #Check if multiple pods
+if [ -v nameSpace ];
+then
+if [[ `printf "$allPods" | grep $1 | grep $nameSpace| awk '{print $2}' | uniq | wc -l` -ge "2" ]]; then
+echo "Multiple Pods Running for Deployment Please select"
+read -r -p "`printf "$allPods" | grep $1 | grep $nameSpace | awk '{print $2}'` `echo $'\n> '` " podId
+else 
+podId=$(printf "$allPods" | grep $deployment | grep $nameSpace |  awk '{print $2}')
+fi
+else
 if [[ `printf "$allPods" | grep $1 | awk '{print $2}' | uniq | wc -l` -ge "2" ]]; then
 echo "Multiple Pods Running for Deployment Please select"
 read -r -p "`printf "$allPods" | grep $1 | awk '{print $2}'` `echo $'\n> '` " podId
 else 
 podId=$(printf "$allPods" | grep $deployment | awk '{print $2}')
 fi
-
+fi
 #Do the attach
 echo "Attaching with sh shell to"
 echo "namespace: $nameSpace"
