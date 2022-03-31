@@ -8,6 +8,10 @@ else
 fi
 
 allPods=$(kubectl get pods --all-namespaces)
+if [[ `printf "$allPods" | grep $1 | awk '{print $1}' | uniq | wc -l` -le "0" ]]; then
+echo "Nothing found matching $1"
+exit 1
+fi
 #Check if same deployment exists in multiple namespaces
 if [[ `printf "$allPods" | grep $1 | awk '{print $1}' | uniq | wc -l` -ge "2" ]]; then
 echo "Pods Running for Deployment in Mutiple Namespaces Please select"
