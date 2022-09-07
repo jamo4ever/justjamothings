@@ -32,4 +32,4 @@ fi
 echo "Getting Logs For"
 echo "namespace: $nameSpace"
 echo "podid: $podId"
-kubectl -n $nameSpace logs $podId | less
+kubectl -n $nameSpace logs $podId | less -R
